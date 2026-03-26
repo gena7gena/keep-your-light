@@ -48,7 +48,11 @@ p {
 
 .page {
   width: min(100%, 1040px);
+  height: 100%;
   padding: 10px 8px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .intro {
@@ -116,11 +120,15 @@ p {
 }
 
 .mantra {
-  max-width: 22ch;
+  max-width: 40ch;
+  min-height: calc(1.45em * 3);
   justify-self: center;
+  display: flex;
+  align-items: center;
   color: #f2f2ed;
   font-size: clamp(1rem, 1.7vw, 1.35rem);
   line-height: 1.45;
+  text-align: center;
 }
 
 .actions {
@@ -136,43 +144,56 @@ p {
   justify-items: center;
   align-content: start;
   gap: 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: 18px 14px 16px;
+  border: 1px solid rgba(214, 176, 102, 0.2);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(64, 45, 20, 0.14), rgba(18, 14, 9, 0.2)),
+    rgba(255, 244, 214, 0.015);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 204, 0.03),
+    0 10px 24px rgba(0, 0, 0, 0.18);
   font: inherit;
   color: inherit;
   text-align: center;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform 160ms ease,
-    opacity 160ms ease;
+    opacity 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .action-card:hover {
-  opacity: 0.88;
+  opacity: 1;
+  border-color: rgba(214, 176, 102, 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 204, 0.05),
+    0 0 22px rgba(204, 155, 72, 0.12),
+    0 12px 30px rgba(0, 0, 0, 0.24);
+  background:
+    linear-gradient(180deg, rgba(84, 60, 28, 0.2), rgba(22, 16, 10, 0.24)),
+    rgba(255, 244, 214, 0.03);
 }
 
 .action-card:focus-visible {
-  outline: 2px solid rgba(255, 242, 210, 0.6);
-  outline-offset: 6px;
+  outline: 2px solid rgba(255, 220, 150, 0.45);
+  outline-offset: 4px;
+  border-color: rgba(214, 176, 102, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 204, 0.05),
+    0 0 26px rgba(204, 155, 72, 0.14),
+    0 12px 30px rgba(0, 0, 0, 0.24);
 }
 
 .action-card:active {
-  transform: translateY(1px);
-}
-
-.action-card svg {
-  width: 24px;
-  height: 24px;
-  stroke: rgba(255, 244, 214, 0.72);
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
+  transform: translateY(1px) scale(0.995);
 }
 
 .action-card h2 {
-  font-size: 0.86rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #fff2d2;
 }
@@ -180,7 +201,7 @@ p {
 .action-card p {
   max-width: 12ch;
   color: rgba(255, 255, 255, 0.83);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   line-height: 1.2;
 }
 
@@ -206,7 +227,16 @@ p {
 
   .mantra {
     max-width: 28ch;
+    min-height: calc(1.45em * 2.5);
     text-align: center;
+  }
+
+  .action-card h2 {
+    font-size: 0.95rem;
+  }
+
+  .action-card p {
+    font-size: 0.78rem;
   }
 }
 
@@ -221,7 +251,7 @@ p {
 
   .intro {
     margin-bottom: 18px;
-    text-align: left;
+    text-align: center;
   }
 
   .intro h1 {
@@ -237,8 +267,9 @@ p {
   }
 
   .mantra {
-    justify-self: start;
-    text-align: left;
+    min-height: calc(1.45em * 3);
+    justify-self: center;
+    text-align: center;
     font-size: 0.98rem;
   }
 
@@ -250,5 +281,6 @@ p {
 
   .action-card {
     min-height: 92px;
+    padding: 16px 10px 14px;
   }
 }
