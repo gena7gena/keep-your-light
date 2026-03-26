@@ -1,8 +1,10 @@
 import { gsap } from 'gsap'
+import type { TextShaderOverlay } from './mantraShader'
 
 export type MantraAnimationContext = {
   text: HTMLElement
   nextText: string
+  shader?: TextShaderOverlay | null
 }
 
 export type MantraAnimation = (
@@ -58,16 +60,24 @@ export const animateMantraChange = async (
   context: MantraAnimationContext,
   animationSet: MantraAnimationSet,
 ) => {
-  await play(animationSet.fadeOut(context))
+  context.shader?.syncText()
+  await Promise.all([
+    play(animationSet.fadeOut(context)),
+    context.shader?.animateOut() ?? Promise.resolve(),
+  ])
 
   if (animationSet.pauseMs) {
     await wait(animationSet.pauseMs)
   }
 
   context.text.textContent = context.nextText
+  context.shader?.syncText()
   gsap.set(context.text, { clearProps: 'all' })
 
-  await play(animationSet.fadeIn(context))
+  await Promise.all([
+    play(animationSet.fadeIn(context)),
+    context.shader?.animateIn() ?? Promise.resolve(),
+  ])
 
   gsap.set(context.text, { clearProps: 'all' })
 }

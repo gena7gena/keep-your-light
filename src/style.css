@@ -123,8 +123,10 @@ p {
   max-width: 40ch;
   min-height: calc(1.45em * 3);
   justify-self: center;
+  position: relative;
   display: grid;
   place-items: center;
+  isolation: isolate;
   color: #f2f2ed;
   font-size: clamp(1rem, 1.7vw, 1.35rem);
   line-height: 1.45;
@@ -132,7 +134,18 @@ p {
 }
 
 .mantra__text {
+  position: relative;
   display: block;
+  z-index: 1;
+}
+
+.mantra__shader {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .actions {
