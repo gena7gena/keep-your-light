@@ -11,8 +11,15 @@ const mantraElement = document.querySelector<HTMLElement>('#mantra')
 const mantraTextElement =
   mantraElement?.querySelector<HTMLElement>('.mantra__text') ?? null
 const subtitleElement = document.querySelector<HTMLElement>('.intro p')
+const doneButton = document.querySelector<HTMLButtonElement>('#done-trigger')
 const actionsElement = document.querySelector<HTMLElement>('.actions')
-const actionButtons = document.querySelectorAll<HTMLButtonElement>('[data-category]')
+const actionButtons = document.querySelectorAll<HTMLButtonElement>(
+  '.actions [data-category]:not([data-category="done"])',
+)
+const completionScreen =
+  document.querySelector<HTMLElement>('#completion-screen')
+const completionQuoteElement =
+  completionScreen?.querySelector<HTMLElement>('#completion-quote') ?? null
 const mantraShader =
   mantraElement && mantraTextElement
     ? await createTextShaderOverlay({
@@ -22,6 +29,7 @@ const mantraShader =
     : null
 
 type MantraCategory = 'help' | 'perspective' | 'momentum' | 'done'
+type SupportCategory = Exclude<MantraCategory, 'done'>
 
 type MantrasByCategory = Record<MantraCategory, string[]>
 
@@ -40,6 +48,7 @@ let queuedText: string | null = null
 let actionsAreHidden = false
 let subtitleIsHidden = false
 let hideActionsTimeout: number | null = null
+let isCompletionScreenOpen = false
 
 const showActions = () => {
   if (!actionsElement || !actionsAreHidden) {
@@ -102,7 +111,7 @@ const hideSubtitle = () => {
 }
 
 const scheduleActionsHide = () => {
-  if (!actionsElement) {
+  if (!actionsElement || isCompletionScreenOpen) {
     return
   }
 
@@ -117,8 +126,79 @@ const scheduleActionsHide = () => {
 }
 
 const handleUserActivity = () => {
+  if (isCompletionScreenOpen) {
+    return
+  }
+
   showActions()
   showSubtitle()
+  scheduleActionsHide()
+}
+
+const showCompletionScreen = () => {
+  if (!completionScreen || !completionQuoteElement) {
+    return
+  }
+
+  const completionQuotes = (mantrasByCategory as MantrasByCategory).done
+  const currentText = completionQuoteElement.textContent?.trim() ?? ''
+  const nextText = pickRandomMantra(completionQuotes, currentText)
+
+  completionQuoteElement.textContent = nextText
+  isCompletionScreenOpen = true
+  actionsAreHidden = false
+  subtitleIsHidden = false
+
+  if (hideActionsTimeout !== null) {
+    window.clearTimeout(hideActionsTimeout)
+    hideActionsTimeout = null
+  }
+
+  gsap.killTweensOf([actionsElement, subtitleElement, completionScreen, completionQuoteElement])
+  gsap.set(completionScreen, {
+    display: 'grid',
+    pointerEvents: 'auto',
+  })
+  gsap.to(completionScreen, {
+    autoAlpha: 1,
+    duration: 1.1,
+    ease: 'power2.out',
+  })
+  gsap.fromTo(
+    completionQuoteElement,
+    {
+      autoAlpha: 0,
+      y: 18,
+    },
+    {
+      autoAlpha: 1,
+      y: 0,
+      duration: 1.2,
+      ease: 'power2.out',
+    },
+  )
+}
+
+const hideCompletionScreen = () => {
+  if (!completionScreen || !isCompletionScreenOpen) {
+    return
+  }
+
+  isCompletionScreenOpen = false
+
+  gsap.killTweensOf([completionScreen, completionQuoteElement])
+  gsap.to(completionScreen, {
+    autoAlpha: 0,
+    duration: 0.35,
+    ease: 'power2.out',
+    pointerEvents: 'none',
+    onComplete: () => {
+      gsap.set(completionScreen, { display: 'none' })
+    },
+  })
+
+  showSubtitle()
+  showActions()
   scheduleActionsHide()
 }
 
@@ -181,12 +261,39 @@ if (subtitleElement) {
   })
 }
 
+if (completionScreen) {
+  gsap.set(completionScreen, {
+    autoAlpha: 0,
+    display: 'none',
+    pointerEvents: 'none',
+  })
+
+  completionScreen.addEventListener('click', hideCompletionScreen)
+}
+
+if (doneButton) {
+  doneButton.addEventListener('click', () => {
+    if (isCompletionScreenOpen) {
+      hideCompletionScreen()
+      return
+    }
+
+    showCompletionScreen()
+  })
+}
+
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    hideCompletionScreen()
+  }
+})
+
 if (mantraTextElement && actionButtons.length > 0) {
   actionButtons.forEach((button) => {
     button.addEventListener('click', () => {
       handleUserActivity()
 
-      const category = button.dataset.category as MantraCategory | undefined
+      const category = button.dataset.category as SupportCategory | undefined
 
       if (!category) {
         return

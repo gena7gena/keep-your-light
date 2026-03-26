@@ -16,6 +16,7 @@ type ShaderState = {
   progress: number
   direction: number
   opacity: number
+  phase: number
   time: number
 }
 
@@ -85,32 +86,35 @@ fn main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let flippedUv = vec2f(uv.x, 1.0 - uv.y);
   let progress = clamp(uniforms.progress, 0.0, 1.0);
   let direction = select(-1.0, 1.0, uniforms.direction >= 0.0);
+  let isInPhase = uniforms.padding.x > 0.5;
+  let revealProgress = select(progress, 1.0 - progress, isInPhase);
+  let effectProgress = progress;
   let time = uniforms.time * 0.001;
 
   let field = noise2(flippedUv * vec2f(12.0, 16.0) + vec2f(time * 0.75, -time * 0.35));
   let fieldFine = noise2(flippedUv * vec2f(28.0, 36.0) - vec2f(time * 1.6, time * 0.5));
   let dissolveNoise = mix(field, fieldFine, 0.35);
 
-  let front = progress * 1.28 - flippedUv.x * 1.08 + (dissolveNoise - 0.5) * 0.32;
+  let front = revealProgress * 1.28 - flippedUv.x * 1.08 + (dissolveNoise - 0.5) * 0.32;
   let dissolveMask = smoothstep(0.0, 0.2, front);
-  let edgeMask = (1.0 - smoothstep(0.0, 0.085, abs(front - 0.08))) * progress;
+  let edgeMask = (1.0 - smoothstep(0.0, 0.085, abs(front - 0.08))) * revealProgress;
 
   let drift = vec2f(
-    direction * progress * (0.018 + dissolveNoise * 0.05),
-    (fieldFine - 0.5) * progress * 0.06
+    direction * effectProgress * (0.018 + dissolveNoise * 0.05),
+    (fieldFine - 0.5) * effectProgress * 0.06
   );
   let ripple = vec2f(
     (noise2(flippedUv * vec2f(22.0, 18.0) + vec2f(time * 0.9, time * 0.4)) - 0.5) * 0.032,
     (noise2(flippedUv * vec2f(14.0, 26.0) - vec2f(time * 0.4, time * 0.9)) - 0.5) * 0.02
-  ) * edgeMask;
+  ) * edgeMask * effectProgress;
 
   let sampleUv = clamp(flippedUv + drift + ripple, vec2f(0.0), vec2f(1.0));
   let trailUv = clamp(
-    sampleUv - vec2f(direction * (0.012 + progress * 0.06), -0.014 * progress),
+    sampleUv - vec2f(direction * (0.012 + effectProgress * 0.06), -0.014 * effectProgress),
     vec2f(0.0),
     vec2f(1.0)
   );
-  let fringeOffset = vec2f(0.01 + progress * 0.02, 0.0);
+  let fringeOffset = vec2f(0.01 + effectProgress * 0.02, 0.0);
 
   let base = textureSample(textTexture, textSampler, sampleUv);
   let trail = textureSample(textTexture, textSampler, trailUv);
@@ -119,7 +123,7 @@ fn main(@location(0) uv: vec2f) -> @location(0) vec4f {
 
   let textPresence = base.a;
   let trailPresence = trail.a;
-  let survivor = textPresence * (1.0 - dissolveMask);
+  let survivor = textPresence * select(1.0 - dissolveMask, dissolveMask, isInPhase);
   let halo = edgeMask * max(textPresence, trailPresence) * (0.5 + fieldFine * 0.95);
 
   let sparkGrid = floor(flippedUv * vec2f(84.0, 44.0));
@@ -129,7 +133,7 @@ fn main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let sparkShape = smoothstep(0.75, 0.0, distance(fract(flippedUv * vec2f(84.0, 44.0)), vec2f(0.5)));
   let sparks = sparkMask * sparkShape * 1.35;
 
-  let survivorTint = mix(vec3f(1.0, 0.98, 0.94), vec3f(1.0, 0.82, 0.58), progress * 0.3);
+  let survivorTint = mix(vec3f(1.0, 0.98, 0.94), vec3f(1.0, 0.82, 0.58), effectProgress * 0.3);
   let emberCore = vec3f(1.0, 0.94, 0.72) * halo * 0.8;
   let fireGlow = vec3f(1.0, 0.56, 0.16) * halo * 1.05;
   let coalGlow = vec3f(0.62, 0.1, 0.02) * halo * 0.6;
@@ -249,6 +253,7 @@ export const createTextShaderOverlay = async ({
     progress: 0,
     direction: 1,
     opacity: 1,
+    phase: 0,
     time: performance.now(),
   }
 
@@ -263,7 +268,7 @@ export const createTextShaderOverlay = async ({
         state.direction,
         state.opacity,
         state.time,
-        0,
+        state.phase,
         0,
       ]),
     )
@@ -468,10 +473,12 @@ export const createTextShaderOverlay = async ({
           direction: 1,
           progress: 0,
           opacity: 1,
+          phase: 0,
         },
         to: {
           progress: 1,
           opacity: 0.02,
+          phase: 0,
         },
         duration: 0.62,
         ease: 'power2.inOut',
@@ -479,13 +486,15 @@ export const createTextShaderOverlay = async ({
     animateIn: () =>
       runTransition({
         from: {
-          direction: -1,
+          direction: 1,
           progress: 1,
           opacity: 0.95,
+          phase: 1,
         },
         to: {
           progress: 0,
           opacity: 1,
+          phase: 1,
         },
         duration: 2.72,
         ease: 'power3.out',

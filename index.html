@@ -16,8 +16,10 @@
     <div id="app">
       <main class="page">
         <header class="intro">
-          <h1>Keep your light</h1>
-          <p>When the day feels too heavy</p>
+          <div class="intro__copy">
+            <h1>Keep your light</h1>
+            <p>When the day feels too heavy</p>
+          </div>
         </header>
 
         <section class="scene-and-copy" aria-label="Main message">
@@ -58,12 +60,24 @@
             <p>I just need to keep moving</p>
           </button>
 
-          <button class="action-card" type="button" data-category="done">
+          <button
+            class="action-card action-card--done"
+            id="done-trigger"
+            type="button"
+          >
             <h2>Done</h2>
             <p>I survived</p>
           </button>
         </section>
       </main>
+
+      <section
+        class="completion-screen"
+        id="completion-screen"
+        aria-hidden="true"
+      >
+        <p class="completion-screen__quote" id="completion-quote"></p>
+      </section>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
