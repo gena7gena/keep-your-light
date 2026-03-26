@@ -123,12 +123,16 @@ p {
   max-width: 40ch;
   min-height: calc(1.45em * 3);
   justify-self: center;
-  display: flex;
-  align-items: center;
+  display: grid;
+  place-items: center;
   color: #f2f2ed;
   font-size: clamp(1rem, 1.7vw, 1.35rem);
   line-height: 1.45;
   text-align: center;
+}
+
+.mantra__text {
+  display: block;
 }
 
 .actions {

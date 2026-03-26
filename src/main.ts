@@ -1,7 +1,13 @@
 import './style.css'
 import mantrasByCategory from './mantras.json'
+import {
+  animateMantraChange,
+  defaultMantraAnimation,
+} from './mantraAnimations'
 
 const mantraElement = document.querySelector<HTMLElement>('#mantra')
+const mantraTextElement =
+  mantraElement?.querySelector<HTMLElement>('.mantra__text') ?? null
 const actionButtons = document.querySelectorAll<HTMLButtonElement>('[data-category]')
 
 type MantraCategory = 'help' | 'perspective' | 'momentum' | 'done'
@@ -18,7 +24,47 @@ const pickRandomMantra = (mantras: string[], currentText: string) => {
   return candidates[Math.floor(Math.random() * candidates.length)]
 }
 
-if (mantraElement && actionButtons.length > 0) {
+let isAnimating = false
+let queuedText: string | null = null
+
+const swapMantra = async (nextText: string) => {
+  if (!mantraTextElement) {
+    return
+  }
+
+  const currentText = mantraTextElement.textContent?.trim() ?? ''
+
+  if (!nextText || nextText === currentText) {
+    return
+  }
+
+  if (isAnimating) {
+    queuedText = nextText
+    return
+  }
+
+  isAnimating = true
+
+  try {
+    await animateMantraChange(
+      {
+        text: mantraTextElement,
+        nextText,
+      },
+      defaultMantraAnimation,
+    )
+  } finally {
+    isAnimating = false
+
+    if (queuedText) {
+      const pendingText = queuedText
+      queuedText = null
+      await swapMantra(pendingText)
+    }
+  }
+}
+
+if (mantraTextElement && actionButtons.length > 0) {
   actionButtons.forEach((button) => {
     button.addEventListener('click', () => {
       const category = button.dataset.category as MantraCategory | undefined
@@ -33,8 +79,10 @@ if (mantraElement && actionButtons.length > 0) {
         return
       }
 
-      const currentText = mantraElement.textContent?.trim() ?? ''
-      mantraElement.textContent = pickRandomMantra(nextMantras, currentText)
+      const currentText = mantraTextElement.textContent?.trim() ?? ''
+      const nextText = pickRandomMantra(nextMantras, currentText)
+
+      void swapMantra(nextText)
     })
   })
 }
