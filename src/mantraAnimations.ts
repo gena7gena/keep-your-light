@@ -29,55 +29,61 @@ const play = (timeline: gsap.core.Timeline) =>
 
 export const fadeUpOut: MantraAnimation = ({ text }) =>
   gsap.timeline().to(text, {
-    y: -18,
     autoAlpha: 0,
-    duration: 0.24,
+    duration: 0.18,
     ease: 'power2.in',
   })
 
-export const fadeInFromBottom: MantraAnimation = ({ text }) =>
+export const fadeInSoft: MantraAnimation = ({ text }) =>
   gsap.timeline().fromTo(
     text,
     {
-      y: 24,
       autoAlpha: 0,
     },
     {
-      y: 0,
       autoAlpha: 1,
-      duration: 0.34,
-      ease: 'power3.out',
+      duration: 0.24,
+      ease: 'power2.out',
     },
   )
 
 export const defaultMantraAnimation: MantraAnimationSet = {
   fadeOut: fadeUpOut,
-  fadeIn: fadeInFromBottom,
-  pauseMs: 90,
+  fadeIn: fadeInSoft,
+  pauseMs: 180,
 }
 
 export const animateMantraChange = async (
   context: MantraAnimationContext,
   animationSet: MantraAnimationSet,
 ) => {
-  context.shader?.syncText()
-  await Promise.all([
-    play(animationSet.fadeOut(context)),
-    context.shader?.animateOut() ?? Promise.resolve(),
-  ])
+  const shader = context.shader
+
+  if (shader) {
+    shader.syncText()
+    await shader.animateOut()
+
+    if (animationSet.pauseMs) {
+      await wait(animationSet.pauseMs)
+    }
+
+    context.text.textContent = context.nextText
+    shader.syncText()
+    await shader.animateIn()
+
+    return
+  }
+
+  await play(animationSet.fadeOut(context))
 
   if (animationSet.pauseMs) {
     await wait(animationSet.pauseMs)
   }
 
   context.text.textContent = context.nextText
-  context.shader?.syncText()
   gsap.set(context.text, { clearProps: 'all' })
 
-  await Promise.all([
-    play(animationSet.fadeIn(context)),
-    context.shader?.animateIn() ?? Promise.resolve(),
-  ])
+  await play(animationSet.fadeIn(context))
 
   gsap.set(context.text, { clearProps: 'all' })
 }

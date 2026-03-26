@@ -120,6 +120,7 @@ p {
 }
 
 .mantra {
+  width: min(100%, 40ch);
   max-width: 40ch;
   min-height: calc(1.45em * 3);
   justify-self: center;
@@ -136,7 +137,12 @@ p {
 .mantra__text {
   position: relative;
   display: block;
+  width: 100%;
   z-index: 1;
+}
+
+.mantra--shader-active .mantra__text {
+  opacity: 0;
 }
 
 .mantra__shader {
@@ -243,6 +249,7 @@ p {
   }
 
   .mantra {
+    width: min(100%, 28ch);
     max-width: 28ch;
     min-height: calc(1.45em * 2.5);
     text-align: center;
