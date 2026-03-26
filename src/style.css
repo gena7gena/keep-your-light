@@ -41,6 +41,7 @@ p {
 
 #app {
   min-height: 100vh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
   padding: 18px;
@@ -296,7 +297,11 @@ p {
 
 @media (max-width: 560px) {
   #app {
-    padding: 16px;
+    min-height: 100svh;
+    padding:
+      calc(16px + env(safe-area-inset-top))
+      16px
+      calc(16px + env(safe-area-inset-bottom));
   }
 
   .page {
