@@ -125,7 +125,7 @@ p {
 }
 
 .mantra {
-  width: min(100%, 40ch);
+  width: min(100%, 60ch);
   max-width: 40ch;
   min-height: calc(1.45em * 3);
   justify-self: center;
@@ -136,7 +136,7 @@ p {
   color: #f2f2ed;
   font-size: clamp(1rem, 1.7vw, 1.35rem);
   line-height: 1.45;
-  text-align: center;
+  text-align: left;
 }
 
 .mantra__text {
@@ -279,8 +279,8 @@ p {
   }
 
   .mantra {
-    width: min(100%, 28ch);
-    max-width: 28ch;
+    width: 100%;
+    max-width: none;
     min-height: calc(1.45em * 2.5);
     text-align: center;
   }
@@ -326,6 +326,8 @@ p {
   }
 
   .mantra {
+    width: 100%;
+    max-width: none;
     min-height: calc(1.45em * 3);
     justify-self: center;
     text-align: center;

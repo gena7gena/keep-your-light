@@ -122,7 +122,7 @@ const scheduleActionsHide = () => {
   hideActionsTimeout = window.setTimeout(() => {
     hideActions()
     hideSubtitle()
-  }, 3000)
+  }, 6000)
 }
 
 const handleUserActivity = () => {
