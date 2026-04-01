@@ -248,7 +248,7 @@ p {
 }
 
 .completion-screen__quote {
-  width: min(100%, 18ch);
+  width: min(100%, 40ch);
   color: #f7efd8;
   font-size: clamp(1.35rem, 3vw, 2.4rem);
   line-height: 1.25;
@@ -347,7 +347,7 @@ p {
   }
 
   .completion-screen__quote {
-    width: min(100%, 14ch);
+    width: min(100%, 40ch);
     font-size: 1.5rem;
   }
 }
