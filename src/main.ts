@@ -56,7 +56,6 @@ let isAnimating = false
 let queuedText: string | null = null
 let actionsAreHidden = false
 let subtitleIsHidden = false
-let mantraIsHidden = false
 let controlsAreHidden = false
 let hideActionsTimeout: number | null = null
 let isCompletionScreenOpen = false
@@ -88,36 +87,6 @@ const hideActions = () => {
   gsap.killTweensOf(actionsElement)
   gsap.to(actionsElement, {
     y: 20,
-    autoAlpha: 0,
-    duration: 3,
-    ease: 'power2.out',
-    pointerEvents: 'none',
-  })
-}
-
-const showMantra = () => {
-  if (!mantraContainer || !mantraIsHidden) {
-    return
-  }
-
-  mantraIsHidden = false
-  gsap.killTweensOf(mantraContainer)
-  gsap.to(mantraContainer, {
-    autoAlpha: 1,
-    duration: 0.3,
-    ease: 'power2.out',
-    pointerEvents: 'auto',
-  })
-}
-
-const hideMantra = () => {
-  if (!mantraContainer || mantraIsHidden) {
-    return
-  }
-
-  mantraIsHidden = true
-  gsap.killTweensOf(mantraContainer)
-  gsap.to(mantraContainer, {
     autoAlpha: 0,
     duration: 3,
     ease: 'power2.out',
@@ -197,7 +166,6 @@ const scheduleActionsHide = () => {
   hideActionsTimeout = window.setTimeout(() => {
     hideActions()
     hideSubtitle()
-    hideMantra()
     hideControls()
   }, 6000)
 }
@@ -209,7 +177,6 @@ const handleUserClick = () => {
 
   showActions()
   showSubtitle()
-  showMantra()
   showControls()
   scheduleActionsHide()
 }
@@ -325,7 +292,6 @@ const hideCompletionScreen = () => {
 
   showSubtitle()
   showActions()
-  showMantra()
   showControls()
   scheduleActionsHide()
 }

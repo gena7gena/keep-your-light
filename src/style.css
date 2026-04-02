@@ -88,6 +88,10 @@ p {
   align-items: center;
 }
 
+.scene-shell {
+  position: relative;
+}
+
 .scene {
   position: relative;
   min-height: 250px;
@@ -129,7 +133,7 @@ p {
 
 .scene-controls {
   position: absolute;
-  top: 10px;
+  top: -48px;
   right: 10px;
   display: inline-flex;
   align-items: center;
@@ -381,6 +385,10 @@ p {
     gap: 26px;
   }
 
+  .scene-controls {
+    top: -44px;
+  }
+
   .mantra {
     width: 100%;
     max-width: none;
@@ -426,6 +434,12 @@ p {
 
   .scene {
     min-height: 160px;
+  }
+
+  .scene-controls {
+    top: -42px;
+    right: 8px;
+    gap: 6px;
   }
 
   .mantra {
