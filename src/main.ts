@@ -11,8 +11,17 @@ const mantraElement = document.querySelector<HTMLElement>('#mantra')
 const mantraTextElement =
   mantraElement?.querySelector<HTMLElement>('.mantra__text') ?? null
 const subtitleElement = document.querySelector<HTMLElement>('.intro p')
+const mantraContainer = document.querySelector<HTMLElement>('#mantra')
 const doneButton = document.querySelector<HTMLButtonElement>('#done-trigger')
 const actionsElement = document.querySelector<HTMLElement>('.actions')
+const sceneControlsElement =
+  document.querySelector<HTMLElement>('#scene-controls')
+const videoElement = document.querySelector<HTMLVideoElement>('#scene-video')
+const fullscreenToggleButton =
+  document.querySelector<HTMLButtonElement>('#fullscreen-toggle')
+const volumeToggleButton =
+  document.querySelector<HTMLButtonElement>('#volume-toggle')
+const volumeSlider = document.querySelector<HTMLInputElement>('#volume-slider')
 const actionButtons = document.querySelectorAll<HTMLButtonElement>(
   '.actions [data-category]:not([data-category="done"])',
 )
@@ -47,8 +56,12 @@ let isAnimating = false
 let queuedText: string | null = null
 let actionsAreHidden = false
 let subtitleIsHidden = false
+let mantraIsHidden = false
+let controlsAreHidden = false
 let hideActionsTimeout: number | null = null
 let isCompletionScreenOpen = false
+let audioUnlocked = false
+let lastVolume = 0.55
 
 const showActions = () => {
   if (!actionsElement || !actionsAreHidden) {
@@ -76,6 +89,68 @@ const hideActions = () => {
   gsap.to(actionsElement, {
     y: 20,
     autoAlpha: 0,
+    duration: 3,
+    ease: 'power2.out',
+    pointerEvents: 'none',
+  })
+}
+
+const showMantra = () => {
+  if (!mantraContainer || !mantraIsHidden) {
+    return
+  }
+
+  mantraIsHidden = false
+  gsap.killTweensOf(mantraContainer)
+  gsap.to(mantraContainer, {
+    autoAlpha: 1,
+    duration: 0.3,
+    ease: 'power2.out',
+    pointerEvents: 'auto',
+  })
+}
+
+const hideMantra = () => {
+  if (!mantraContainer || mantraIsHidden) {
+    return
+  }
+
+  mantraIsHidden = true
+  gsap.killTweensOf(mantraContainer)
+  gsap.to(mantraContainer, {
+    autoAlpha: 0,
+    duration: 3,
+    ease: 'power2.out',
+    pointerEvents: 'none',
+  })
+}
+
+const showControls = () => {
+  if (!sceneControlsElement || !controlsAreHidden) {
+    return
+  }
+
+  controlsAreHidden = false
+  gsap.killTweensOf(sceneControlsElement)
+  gsap.to(sceneControlsElement, {
+    autoAlpha: 1,
+    y: 0,
+    duration: 0.24,
+    ease: 'power2.out',
+    pointerEvents: 'auto',
+  })
+}
+
+const hideControls = () => {
+  if (!sceneControlsElement || controlsAreHidden) {
+    return
+  }
+
+  controlsAreHidden = true
+  gsap.killTweensOf(sceneControlsElement)
+  gsap.to(sceneControlsElement, {
+    autoAlpha: 0,
+    y: -8,
     duration: 3,
     ease: 'power2.out',
     pointerEvents: 'none',
@@ -122,17 +197,68 @@ const scheduleActionsHide = () => {
   hideActionsTimeout = window.setTimeout(() => {
     hideActions()
     hideSubtitle()
+    hideMantra()
+    hideControls()
   }, 6000)
 }
 
-const handleUserActivity = () => {
+const handleUserClick = () => {
   if (isCompletionScreenOpen) {
     return
   }
 
   showActions()
   showSubtitle()
+  showMantra()
+  showControls()
   scheduleActionsHide()
+}
+
+const updateVolumeUi = () => {
+  if (!volumeToggleButton || !videoElement) {
+    return
+  }
+
+  const isMuted = videoElement.muted || videoElement.volume === 0
+  volumeToggleButton.classList.toggle('is-muted', isMuted)
+  volumeToggleButton.setAttribute('aria-pressed', String(isMuted))
+  volumeToggleButton.setAttribute('aria-label', isMuted ? 'Unmute sound' : 'Mute sound')
+
+  if (volumeSlider) {
+    volumeSlider.value = String(videoElement.volume)
+  }
+}
+
+const syncFullscreenUi = () => {
+  if (!fullscreenToggleButton) {
+    return
+  }
+
+  const isFullscreen = Boolean(document.fullscreenElement)
+  fullscreenToggleButton.classList.toggle('is-fullscreen', isFullscreen)
+  fullscreenToggleButton.setAttribute('aria-pressed', String(isFullscreen))
+  fullscreenToggleButton.setAttribute(
+    'aria-label',
+    isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen',
+  )
+}
+
+const startAmbientAudio = async () => {
+  if (!videoElement || audioUnlocked) {
+    return
+  }
+
+  videoElement.muted = false
+  videoElement.volume = Math.max(0, Math.min(1, lastVolume))
+
+  try {
+    await videoElement.play()
+    audioUnlocked = true
+  } catch {
+    videoElement.muted = true
+  } finally {
+    updateVolumeUi()
+  }
 }
 
 const showCompletionScreen = () => {
@@ -199,6 +325,8 @@ const hideCompletionScreen = () => {
 
   showSubtitle()
   showActions()
+  showMantra()
+  showControls()
   scheduleActionsHide()
 }
 
@@ -249,15 +377,27 @@ if (actionsElement) {
 
   scheduleActionsHide()
 
-  window.addEventListener('pointermove', handleUserActivity, { passive: true })
-  window.addEventListener('pointerdown', handleUserActivity, { passive: true })
-  window.addEventListener('keydown', handleUserActivity)
-  window.addEventListener('focus', handleUserActivity)
+  window.addEventListener('pointerdown', handleUserClick, { passive: true })
 }
 
 if (subtitleElement) {
   gsap.set(subtitleElement, {
     autoAlpha: 1,
+  })
+}
+
+if (mantraContainer) {
+  gsap.set(mantraContainer, {
+    autoAlpha: 1,
+    pointerEvents: 'auto',
+  })
+}
+
+if (sceneControlsElement) {
+  gsap.set(sceneControlsElement, {
+    autoAlpha: 1,
+    y: 0,
+    pointerEvents: 'auto',
   })
 }
 
@@ -291,7 +431,7 @@ window.addEventListener('keydown', (event) => {
 if (mantraTextElement && actionButtons.length > 0) {
   actionButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      handleUserActivity()
+      handleUserClick()
 
       const category = button.dataset.category as SupportCategory | undefined
 
@@ -311,4 +451,55 @@ if (mantraTextElement && actionButtons.length > 0) {
       void swapMantra(nextText)
     })
   })
+}
+
+if (fullscreenToggleButton) {
+  fullscreenToggleButton.addEventListener('click', async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen()
+    } else {
+      await document.exitFullscreen()
+    }
+  })
+
+  document.addEventListener('fullscreenchange', syncFullscreenUi)
+  syncFullscreenUi()
+}
+
+if (videoElement && volumeSlider && volumeToggleButton) {
+  videoElement.volume = lastVolume
+  videoElement.muted = true
+  updateVolumeUi()
+  void startAmbientAudio()
+
+  volumeSlider.addEventListener('input', (event) => {
+    const target = event.target as HTMLInputElement
+    const nextVolume = Number(target.value)
+    const clampedVolume = Math.max(0, Math.min(1, nextVolume))
+    lastVolume = clampedVolume
+    videoElement.volume = clampedVolume
+    videoElement.muted = clampedVolume === 0
+    updateVolumeUi()
+  })
+
+  volumeToggleButton.addEventListener('click', () => {
+    if (videoElement.muted || videoElement.volume === 0) {
+      videoElement.muted = false
+      videoElement.volume = lastVolume > 0 ? lastVolume : 0.55
+    } else {
+      lastVolume = videoElement.volume > 0 ? videoElement.volume : lastVolume
+      videoElement.muted = true
+    }
+
+    void startAmbientAudio()
+    updateVolumeUi()
+  })
+
+  window.addEventListener(
+    'pointerdown',
+    () => {
+      void startAmbientAudio()
+    },
+    { once: true, passive: true },
+  )
 }
