@@ -23,19 +23,7 @@
         </header>
 
         <section class="scene-and-copy" aria-label="Main message">
-          <div class="scene">
-            <video
-              id="scene-video"
-              class="scene__video"
-              autoplay
-              loop
-              playsinline
-              preload="metadata"
-            >
-              <source src="/medieval-knight.webm" type="video/webm" />
-              <source src="/medieval-knight.mp4" type="video/mp4" />
-            </video>
-
+          <div class="scene-shell">
             <div class="scene-controls" id="scene-controls" aria-label="Scene controls">
               <div class="volume-control">
                 <button
@@ -96,11 +84,25 @@
                 </svg>
                 <svg class="icon-fullscreen-exit" viewBox="0 0 24 24" aria-hidden="true">
                   <path
-                    d="M9 10H4a1 1 0 1 1 0-2h4V4a1 1 0 1 1 2 0v5a1 1 0 0 1-1 1Zm11 0h-5a1 1 0 0 1-1-1V4a1 1 0 1 1 2 0v4h4a1 1 0 1 1 0 2ZM9 21a1 1 0 0 1-1-1v-4H4a1 1 0 1 1 0-2h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1Zm11 0a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-4v4a1 1 0 0 1-1 1Z"
+                    d="M9 10H5a1 1 0 1 1 0-2h3V5a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1Zm6 0a1 1 0 0 1-1-1V5a1 1 0 1 1 2 0v3h3a1 1 0 1 1 0 2h-4ZM9 20a1 1 0 0 1-1-1v-3H5a1 1 0 1 1 0-2h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1Zm6 0h4a1 1 0 1 0 0-2h-3v-3a1 1 0 1 0-2 0v4a1 1 0 0 0 1 1Z"
                     fill="currentColor"
                   />
                 </svg>
               </button>
+            </div>
+
+            <div class="scene">
+              <video
+                id="scene-video"
+                class="scene__video"
+                autoplay
+                loop
+                playsinline
+                preload="metadata"
+              >
+                <source src="/medieval-knight.webm" type="video/webm" />
+                <source src="/medieval-knight.mp4" type="video/mp4" />
+              </video>
             </div>
           </div>
 
