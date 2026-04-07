@@ -61,6 +61,7 @@ let hideActionsTimeout: number | null = null
 let isCompletionScreenOpen = false
 let audioUnlocked = false
 let lastVolume = 0.55
+let wakeLockHandle: WakeLockSentinel | null = null
 
 const showActions = () => {
   if (!actionsElement || !actionsAreHidden) {
@@ -210,6 +211,18 @@ const syncFullscreenUi = () => {
   )
 }
 
+const ensureAmbientVideoPlayback = async () => {
+  if (!videoElement) {
+    return
+  }
+
+  try {
+    await videoElement.play()
+  } catch {
+    // Silent by design: autoplay can still be blocked on some browsers.
+  }
+}
+
 const startAmbientAudio = async () => {
   if (!videoElement || audioUnlocked) {
     return
@@ -225,6 +238,21 @@ const startAmbientAudio = async () => {
     videoElement.muted = true
   } finally {
     updateVolumeUi()
+  }
+}
+
+const requestScreenWakeLock = async () => {
+  if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') {
+    return
+  }
+
+  try {
+    wakeLockHandle = await navigator.wakeLock.request('screen')
+    wakeLockHandle.addEventListener('release', () => {
+      wakeLockHandle = null
+    })
+  } catch {
+    // Wake Lock can fail on unsupported browsers or low-power mode.
   }
 }
 
@@ -436,7 +464,8 @@ if (videoElement && volumeSlider && volumeToggleButton) {
   videoElement.volume = lastVolume
   videoElement.muted = true
   updateVolumeUi()
-  void startAmbientAudio()
+  void ensureAmbientVideoPlayback()
+  void requestScreenWakeLock()
 
   volumeSlider.addEventListener('input', (event) => {
     const target = event.target as HTMLInputElement
@@ -464,8 +493,20 @@ if (videoElement && volumeSlider && volumeToggleButton) {
   window.addEventListener(
     'pointerdown',
     () => {
+      void ensureAmbientVideoPlayback()
       void startAmbientAudio()
+      void requestScreenWakeLock()
     },
     { once: true, passive: true },
   )
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      void ensureAmbientVideoPlayback()
+      void requestScreenWakeLock()
+    } else if (wakeLockHandle) {
+      void wakeLockHandle.release()
+      wakeLockHandle = null
+    }
+  })
 }
